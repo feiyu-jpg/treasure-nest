@@ -1,5 +1,5 @@
 /* === 藏宝阁 - Service Worker === */
-const CACHE_NAME = 'treasure-nest-v1';
+const CACHE_NAME = 'treasure-nest-v2';
 const ASSETS = [
   './',
   './index.html',
