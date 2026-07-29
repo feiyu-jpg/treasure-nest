@@ -48,6 +48,9 @@ async function init() {
     setTimeout(() => showDocForm(), 200);
   });
 
+  // 检查按钮是否绑定成功
+  console.log('App 初始化完成，按钮已绑定');
+
   // 导出按钮
   document.getElementById('btnExport').addEventListener('click', async () => {
     await exportAllData();
@@ -212,4 +215,12 @@ function bindListItemClicks(container) {
 }
 
 // 启动
-document.addEventListener('DOMContentLoaded', init);
+document.addEventListener('DOMContentLoaded', () => {
+  init().catch(err => {
+    document.body.innerHTML = `<div style="color:#f5566a;padding:40px;text-align:center;">
+      <h2>初始化失败</h2><p>${err.message || err}</p>
+      <p style="font-size:12px;color:#888;">请尝试清除浏览器缓存后刷新，或换用 Chrome 浏览器</p>
+    </div>`;
+    console.error('Init error:', err);
+  });
+});
