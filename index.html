@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#1a1a2e">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>藏宝阁</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div id="app">
+    <!-- 顶部导航 -->
+    <header class="app-header">
+      <h1 class="app-title" id="pageTitle">藏宝阁</h1>
+      <button class="btn-icon" id="btnExport" title="导出数据">⬇</button>
+    </header>
+
+    <!-- 页面容器 -->
+    <main class="page-container">
+      <!-- 首页仪表盘 -->
+      <section class="page" id="page-home">
+        <div class="stats-grid">
+          <div class="stat-card" data-nav="collections">
+            <div class="stat-icon">📦</div>
+            <div class="stat-value" id="statCollections">0</div>
+            <div class="stat-label">藏品</div>
+          </div>
+          <div class="stat-card" data-nav="docs">
+            <div class="stat-icon">📝</div>
+            <div class="stat-value" id="statDocs">0</div>
+            <div class="stat-label">文档</div>
+          </div>
+          <div class="stat-card" data-nav="collections">
+            <div class="stat-icon">🏷️</div>
+            <div class="stat-value" id="statCategories">0</div>
+            <div class="stat-label">分类</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon">📊</div>
+            <div class="stat-value" id="statWords">0</div>
+            <div class="stat-label">总字数</div>
+          </div>
+        </div>
+
+        <div class="section">
+          <h3 class="section-title">最近添加</h3>
+          <div class="recent-list" id="recentList">
+            <div class="empty-hint">还没有任何记录，开始添加吧 ✨</div>
+          </div>
+        </div>
+
+        <div class="quick-actions">
+          <button class="btn-primary full" id="btnQuickCollect">+ 快速添加藏品</button>
+          <button class="btn-secondary full" id="btnQuickDoc">+ 新建文档</button>
+        </div>
+      </section>
+
+      <!-- 藏品阁 -->
+      <section class="page hidden" id="page-collections">
+        <div class="toolbar">
+          <div class="search-box">
+            <input type="text" id="collectSearch" placeholder="搜索藏品..." class="input-search">
+          </div>
+          <div class="filter-row">
+            <select id="collectFilterCategory" class="select-filter">
+              <option value="">全部分类</option>
+            </select>
+            <select id="collectFilterStatus" class="select-filter">
+              <option value="">全部状态</option>
+              <option value="已收藏">已收藏</option>
+              <option value="想入手">想入手</option>
+              <option value="已出掉">已出掉</option>
+            </select>
+          </div>
+        </div>
+        <div class="list" id="collectList">
+          <div class="empty-hint">还没有藏品，点右下角 + 开始记录</div>
+        </div>
+        <button class="fab" id="btnAddCollect">+</button>
+      </section>
+
+      <!-- 文渊阁 -->
+      <section class="page hidden" id="page-docs">
+        <div class="toolbar">
+          <div class="search-box">
+            <input type="text" id="docSearch" placeholder="搜索文档..." class="input-search">
+          </div>
+          <div class="filter-row">
+            <select id="docFilterCategory" class="select-filter">
+              <option value="">全部分类</option>
+            </select>
+            <select id="docSortBy" class="select-filter">
+              <option value="updated_at">最近修改</option>
+              <option value="created_at">最近创建</option>
+              <option value="word_count">字数最多</option>
+              <option value="title">标题 A-Z</option>
+            </select>
+          </div>
+        </div>
+        <div class="list" id="docList">
+          <div class="empty-hint">还没有文档，点右下角 + 开始写作</div>
+        </div>
+        <button class="fab" id="btnAddDoc">+</button>
+      </section>
+
+      <!-- 全局搜索 -->
+      <section class="page hidden" id="page-search">
+        <div class="toolbar">
+          <div class="search-box">
+            <input type="text" id="globalSearch" placeholder="跨藏品和文档搜索..." class="input-search" autofocus>
+          </div>
+        </div>
+        <div class="list" id="searchResultList">
+          <div class="empty-hint">输入关键词开始搜索</div>
+        </div>
+      </section>
+    </main>
+
+    <!-- 底部导航 -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-page="home">
+        <span class="nav-icon">🏠</span>
+        <span class="nav-label">首页</span>
+      </button>
+      <button class="nav-item" data-page="collections">
+        <span class="nav-icon">📦</span>
+        <span class="nav-label">藏品阁</span>
+      </button>
+      <button class="nav-item" data-page="docs">
+        <span class="nav-icon">📝</span>
+        <span class="nav-label">文渊阁</span>
+      </button>
+      <button class="nav-item" data-page="search">
+        <span class="nav-icon">🔍</span>
+        <span class="nav-label">搜索</span>
+      </button>
+    </nav>
+  </div>
+
+  <!-- 模态层容器 -->
+  <div class="modal-overlay hidden" id="modalOverlay"></div>
+  <div class="modal hidden" id="modalContainer"></div>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+    }
+  </script>
+  <script src="js/db.js"></script>
+  <script src="js/app.js"></script>
+  <script src="js/collections.js"></script>
+  <script src="js/docs.js"></script>
+  <script src="js/search.js"></script>
+</body>
+</html>
