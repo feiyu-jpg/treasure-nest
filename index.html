@@ -145,14 +145,21 @@
   <div class="modal hidden" id="modalContainer"></div>
 
   <script>
+    // 全局错误显示
+    window.onerror = function(msg, url, line) {
+      var el = document.createElement('div');
+      el.style.cssText = 'position:fixed;bottom:0;left:0;right:0;background:#f5566a;color:#fff;padding:10px;z-index:9999;font-size:12px;';
+      el.textContent = 'JS错误: ' + msg + ' (行' + line + ')';
+      document.body.appendChild(el);
+    };
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
+      navigator.serviceWorker.register('sw.js').catch(function(){});
     }
   </script>
-  <script src="js/db.js?v=3"></script>
-  <script src="js/app.js?v=3"></script>
-  <script src="js/collections.js?v=3"></script>
-  <script src="js/docs.js?v=3"></script>
-  <script src="js/search.js?v=3"></script>
+  <script src="js/db.js?v=4"></script>
+  <script src="js/app.js?v=4"></script>
+  <script src="js/collections.js?v=4"></script>
+  <script src="js/docs.js?v=4"></script>
+  <script src="js/search.js?v=4"></script>
 </body>
 </html>
