@@ -1,196 +1,196 @@
- 1→<!DOCTYPE html>
-  2→<html lang="zh-CN">
-  3→<head>
-  4→<meta charset="UTF-8">
-  5→<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
-  6→<meta name="theme-color" content="#1a1a2e">
-  7→<title>藏宝阁</title>
-  8→<link rel="manifest" href="manifest.json">
-  9→<style>
- 10→:root{--bg:#0f0f1a;--bg-card:#1a1a2e;--bg-surface:#222240;--border:#2a2a4a;--text:#e0e0e8;--text-secondary:#8888a8;--accent:#7c5cfc;--radius:10px;--radius-sm:6px;--nav-height:62px;--safe-bottom:env(safe-area-inset-bottom,0px)}
- 11→*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
- 12→html,body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);height:100%;overflow:hidden;-webkit-tap-highlight-color:transparent}
- 13→#app{display:flex;flex-direction:column;height:100%;max-width:600px;margin:0 auto}
- 14→.app-header{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:50px;background:var(--bg-card);border-bottom:1px solid var(--border);flex-shrink:0}
- 15→.app-title{font-size:17px;font-weight:700}
- 16→.page-container{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
- 17→.page{padding:16px;padding-bottom:calc(var(--nav-height)+var(--safe-bottom)+16px)}
- 18→.page.hidden{display:none}
- 19→.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px}
- 20→.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer}
- 21→.stat-icon{font-size:24px;margin-bottom:6px}
- 22→.stat-value{font-size:28px;font-weight:800;color:var(--accent)}
- 23→.stat-label{font-size:12px;color:var(--text-secondary)}
- 24→.section{margin-bottom:20px}
- 25→.section-title{font-size:14px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
- 26→.quick-actions{display:flex;flex-direction:column;gap:8px}
- 27→.btn-primary,.btn-secondary{width:100%;padding:14px;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;text-align:center}
- 28→.btn-primary{background:var(--accent);color:#fff}
- 29→.btn-secondary{background:var(--bg-surface);color:var(--text);border:1px solid var(--border)}
- 30→.empty-hint{text-align:center;color:var(--text-secondary);padding:40px 20px;font-size:14px}
- 31→.bottom-nav{display:flex;background:var(--bg-card);border-top:1px solid var(--border);height:var(--nav-height);padding-bottom:var(--safe-bottom);flex-shrink:0}
- 32→.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:none;border:none;color:#5a5a78;cursor:pointer;font-size:11px;gap:3px}
- 33→.nav-item.active{color:var(--accent)}
- 34→.nav-icon{font-size:20px}.nav-label{font-size:10px}
- 35→/* 全屏表单面板 */
- 36→.form-panel{position:fixed;inset:0;z-index:999;background:var(--bg-card);overflow-y:auto;padding:20px 16px;padding-bottom:40px}
- 37→.form-panel.hidden{display:none}
- 38→.form-panel h2{font-size:18px;margin-bottom:16px}
- 39→.form-panel .form-group{margin-bottom:14px}
- 40→.form-panel label{display:block;font-size:12px;color:var(--text-secondary);margin-bottom:4px;font-weight:600}
- 41→.form-panel input,.form-panel select,.form-panel textarea{width:100%;padding:10px 12px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;outline:none;font-family:inherit}
- 42→.form-panel textarea{resize:vertical;min-height:120px}
- 43→.form-panel input:focus,.form-panel select:focus,.form-panel textarea:focus{border-color:var(--accent)}
- 44→.form-panel .form-row{display:flex;gap:8px}
- 45→.form-panel .form-row>*{flex:1}
- 46→.form-panel .btn-row{display:flex;gap:8px;margin-top:16px}
- 47→.form-panel .btn-row button{flex:1;padding:12px;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;border:none}
- 48→.form-panel .btn-save{background:var(--accent);color:#fff}
- 49→.form-panel .btn-cancel{background:var(--bg-surface);color:var(--text);border:1px solid var(--border)}
- 50→.img-upload-area{display:flex;gap:8px;flex-wrap:wrap}
- 51→.img-upload-box{width:64px;height:64px;border:2px dashed var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#5a5a78;font-size:24px}
- 52→.img-preview{width:64px;height:64px;border-radius:var(--radius-sm);object-fit:cover}
- 53→.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--bg-surface);color:var(--text);padding:10px 20px;border-radius:20px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
- 54→.toast.show{opacity:1}
- 55→.list-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;margin-bottom:6px}
- 56→.list-item-thumb{width:44px;height:44px;border-radius:var(--radius-sm);background:var(--bg-surface);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px}
- 57→.list-item-body{flex:1;min-width:0}
- 58→.list-item-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
- 59→.list-item-meta{font-size:11px;color:var(--text-secondary);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap}
- 60→.list-item-right{text-align:right;flex-shrink:0}
- 61→.list-item-price{font-size:14px;font-weight:700;color:#f0b848}
- 62→.list-item-date{font-size:11px;color:#5a5a78}
- 63→.toolbar{margin-bottom:14px}
- 64→.input-search{width:100%;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;outline:none;margin-bottom:8px}
- 65→.input-search:focus{border-color:var(--accent)}
- 66→.filter-row{display:flex;gap:8px}
- 67→.select-filter{flex:1;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;outline:none}
- 68→.fab{position:fixed;bottom:calc(var(--nav-height)+var(--safe-bottom)+20px);right:20px;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:26px;cursor:pointer;box-shadow:0 4px 16px rgba(124,92,252,.25);z-index:10}
- 69→</style>
- 70→</head>
- 71→<body>
- 72→<div id="app">
- 73→<header class="app-header"><h1 class="app-title" id="pageTitle">藏宝阁</h1></header>
- 74→<main class="page-container">
- 75→<section class="page" id="page-home">
- 76→<div class="stats-grid">
- 77→<div class="stat-card" data-nav="collections"><div class="stat-icon">📦</div><div class="stat-value" id="statCollections">0</div><div class="stat-label">藏品</div></div>
- 78→<div class="stat-card" data-nav="docs"><div class="stat-icon">📝</div><div class="stat-value" id="statDocs">0</div><div class="stat-label">文档</div></div>
- 79→<div class="stat-card"><div class="stat-icon">🏷️</div><div class="stat-value" id="statCategories">0</div><div class="stat-label">分类</div></div>
- 80→<div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value" id="statWords">0</div><div class="stat-label">总字数</div></div>
- 81→</div>
- 82→<div class="section"><h3 class="section-title">最近添加</h3><div class="recent-list" id="recentList"><div class="empty-hint">还没有任何记录</div></div></div>
- 83→<div class="quick-actions">
- 84→<button class="btn-primary full" id="btnQuickCollect">+ 快速添加藏品</button>
- 85→<button class="btn-secondary full" id="btnQuickDoc">+ 新建文档</button>
- 86→</div>
- 87→</section>
- 88→</main>
- 89→<nav class="bottom-nav">
- 90→<button class="nav-item active" data-page="home"><span class="nav-icon">🏠</span><span class="nav-label">首页</span></button>
- 91→</nav>
- 92→</div>
- 93→<div class="form-panel hidden" id="formPanel"></div>
- 94→<div class="toast" id="toast"></div>
- 95→
- 96→<script>
- 97→// ===== 最简数据库 =====
- 98→const DB_NAME='tn',DB_VERSION=1;let db=null;
- 99→function openDB(){return new Promise((r,j)=>{const q=indexedDB.open(DB_NAME,DB_VERSION);q.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('c')){const s=d.createObjectStore('c',{keyPath:'id',autoIncrement:true});s.createIndex('ca','category');s.createIndex('cr','created_at')}if(!d.objectStoreNames.contains('d')){const s=d.createObjectStore('d',{keyPath:'id',autoIncrement:true});s.createIndex('dc','category');s.createIndex('du','updated_at');s.createIndex('dw','word_count')}};q.onsuccess=e=>{db=e.target.result;r(db)};q.onerror=e=>j(e.target.error)})}
-100→function dp(store,item){return new Promise((r,j)=>{const t=db.transaction(store,'readwrite');const s=t.objectStore(store);const q=item.id?s.put(item):s.add(item);q.onsuccess=()=>r(q.result);q.onerror=e=>j(e.target.error)})}
-101→function dga(store){return new Promise((r,j)=>{const t=db.transaction(store,'readonly');const q=t.objectStore(store).getAll();q.onsuccess=()=>r(q.result);q.onerror=e=>j(e.target.error)})}
-102→function dc(store){return new Promise((r,j)=>{const t=db.transaction(store,'readonly');const q=t.objectStore(store).count();q.onsuccess=()=>r(q.result);q.onerror=e=>j(e.target.error)})}
-103→const CATS=['手办','积木','模型','书','二次元周边','旅游纪念品','玩具','其他'];
-104→function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
-105→function ts(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._tid);t._tid=setTimeout(()=>t.classList.remove('show'),2000)}
-106→
-107→// ===== 添加藏品表单（全屏面板，不用模态） =====
-108→let cimgs=[];
-109→function showForm(){
-110→  cimgs=[];
-111→  var h='<div class="img-upload-area" id="ua">';
-112→  h+='<div class="img-upload-box" id="ub">📷</div>';
-113→  h+='<input type="file" id="uf" accept="image/*" capture="environment" style="display:none">';
-114→  h+='</div>';
-115→  var html='<h2>添加藏品</h2>'
-116→    +'<div class="form-group"><label>名称 *</label><input type="text" id="fn" placeholder="藏品名称"></div>'
-117→    +'<div class="form-row"><div class="form-group"><label>分类</label><select id="fc">'
-118→    +'<option value="">选择分类</option>'+CATS.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select></div>'
-119→    +'<div class="form-group"><label>状态</label><select id="fs"><option value="已收藏">已收藏</option><option value="想入手">想入手</option><option value="已出掉">已出掉</option></select></div></div>'
-120→    +'<div class="form-group"><label>照片</label>'+h+'</div>'
-121→    +'<div class="form-row"><div class="form-group"><label>入手日期</label><input type="date" id="fd"></div>'
-122→    +'<div class="form-group"><label>价格 ¥</label><input type="number" id="fp" placeholder="0.00" step="0.01"></div></div>'
-123→    +'<div class="form-group"><label>来源</label><input type="text" id="fr" placeholder="淘宝/实体店/礼物..."></div>'
-124→    +'<div class="form-group"><label>展示位置</label><input type="text" id="fl" placeholder="书柜第二层..."></div>'
-125→    +'<div class="form-group"><label>标签</label><input type="text" id="ft" placeholder="限定,绝版..."></div>'
-126→    +'<div class="form-group"><label>备注</label><textarea id="fno" placeholder="这件藏品的故事..."></textarea></div>'
-127→    +'<div class="btn-row"><button class="btn-cancel" id="btnCancel">取消</button><button class="btn-save" id="btnSave">保存</button></div>';
-128→  var panel=document.getElementById('formPanel');
-129→  panel.innerHTML=html;
-130→  panel.classList.remove('hidden');
-131→  document.getElementById('btnCancel').onclick=function(){panel.classList.add('hidden')};
-132→  document.getElementById('btnSave').onclick=async function(){
-133→    var name=document.getElementById('fn').value.trim();
-134→    if(!name){ts('请输入名称');return}
-135→    await dp('c',{name:name,category:document.getElementById('fc').value,status:document.getElementById('fs').value,images:cimgs,purchase_date:document.getElementById('fd').value,price:document.getElementById('fp').value||null,source:document.getElementById('fr').value.trim(),location:document.getElementById('fl').value.trim(),tags:document.getElementById('ft').value.trim(),notes:document.getElementById('fno').value.trim(),created_at:new Date().toISOString(),updated_at:new Date().toISOString()});
-136→    panel.classList.add('hidden');ts('藏品已添加 ✅');refreshHome();
-137→  };
-138→  // 图片上传
-139→  document.getElementById('ub').onclick=function(){document.getElementById('uf').click()};
-140→  document.getElementById('uf').onchange=function(e){
-141→    Array.from(e.target.files).forEach(f=>{
-142→      var r=new FileReader();
-143→      r.onload=function(ev){
-144→        var img=new Image();
-145→        img.onload=function(){
-146→          var c=document.createElement('canvas');var w=img.width,h=img.height;
-147→          if(w>600){h=h*600/w;w=600}c.width=w;c.height=h;
-148→          c.getContext('2d').drawImage(img,0,0,w,h);
-149→          cimgs.push(c.toDataURL('image/jpeg',0.6));refreshImgs();
-150→        };img.src=ev.target.result;
-151→      };r.readAsDataURL(f);
-152→    });
-153→  };
-154→}
-155→function refreshImgs(){
-156→  var ua=document.getElementById('ua');if(!ua)return;
-157→  var h='';cimgs.forEach((img,i)=>{h+='<img class="img-preview" src="'+img+'" data-idx="'+i+'">'});
-158→  h+='<div class="img-upload-box" id="ub">📷</div><input type="file" id="uf" accept="image/*" capture="environment" style="display:none">';
-159→  ua.innerHTML=h;
-160→  document.getElementById('ub').onclick=function(){document.getElementById('uf').click()};
-161→  document.getElementById('uf').onchange=function(e){
-162→    Array.from(e.target.files).forEach(f=>{
-163→      var r=new FileReader();r.onload=function(ev){
-164→        var img=new Image();img.onload=function(){
-165→          var c=document.createElement('canvas');var w=img.width,h=img.height;
-166→          if(w>600){h=h*600/w;w=600}c.width=w;c.height=h;
-167→          c.getContext('2d').drawImage(img,0,0,w,h);
-168→          cimgs.push(c.toDataURL('image/jpeg',0.6));refreshImgs();
-169→        };img.src=ev.target.result;
-170→      };r.readAsDataURL(f);
-171→    });
-172→  };
-173→}
-174→
-175→// ===== 首页 =====
-176→async function refreshHome(){
-177→  var cc=await dc('c'),dc2=await dc('d');
-178→  document.getElementById('statCollections').textContent=cc;
-179→  document.getElementById('statDocs').textContent=dc2;
-180→  var all=await dga('c'),cats=new Set();all.forEach(c=>{if(c.category)cats.add(c.category)});
-181→  document.getElementById('statCategories').textContent=cats.size;
-182→  var ds=await dga('d'),tw=0;ds.forEach(d=>{tw+=d.content?d.content.replace(/\s/g,'').length:0});
-183→  document.getElementById('statWords').textContent=tw>999?Math.round(tw/1000)+'k':tw;
-184→}
-185→
-186→// ===== 初始化 =====
-187→async function init(){
-188→  await openDB();
-189→  document.getElementById('btnQuickCollect').onclick=function(){showForm()};
-190→  refreshHome();
-191→}
-192→document.addEventListener('DOMContentLoaded',init);
-193→</script>
-194→</body>
-195→</html>
-196→
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=no">
+<meta name="theme-color" content="#1a1a2e">
+<title>藏宝阁</title>
+<link rel="manifest" href="manifest.json">
+<style>
+:root{--bg:#0f0f1a;--bg-card:#1a1a2e;--bg-surface:#222240;--border:#2a2a4a;--text:#e0e0e8;--text-secondary:#8888a8;--accent:#7c5cfc;--radius:10px;--radius-sm:6px;--nav-height:62px;--safe-bottom:env(safe-area-inset-bottom,0px)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--bg);color:var(--text);height:100%;overflow:hidden;-webkit-tap-highlight-color:transparent}
+#app{display:flex;flex-direction:column;height:100%;max-width:600px;margin:0 auto}
+.app-header{display:flex;align-items:center;justify-content:space-between;padding:0 16px;height:50px;background:var(--bg-card);border-bottom:1px solid var(--border);flex-shrink:0}
+.app-title{font-size:17px;font-weight:700}
+.page-container{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.page{padding:16px;padding-bottom:calc(var(--nav-height)+var(--safe-bottom)+16px)}
+.page.hidden{display:none}
+.stats-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:20px}
+.stat-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer}
+.stat-icon{font-size:24px;margin-bottom:6px}
+.stat-value{font-size:28px;font-weight:800;color:var(--accent)}
+.stat-label{font-size:12px;color:var(--text-secondary)}
+.section{margin-bottom:20px}
+.section-title{font-size:14px;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:1px;margin-bottom:10px}
+.quick-actions{display:flex;flex-direction:column;gap:8px}
+.btn-primary,.btn-secondary{width:100%;padding:14px;border:none;border-radius:var(--radius);font-size:15px;font-weight:600;cursor:pointer;text-align:center}
+.btn-primary{background:var(--accent);color:#fff}
+.btn-secondary{background:var(--bg-surface);color:var(--text);border:1px solid var(--border)}
+.empty-hint{text-align:center;color:var(--text-secondary);padding:40px 20px;font-size:14px}
+.bottom-nav{display:flex;background:var(--bg-card);border-top:1px solid var(--border);height:var(--nav-height);padding-bottom:var(--safe-bottom);flex-shrink:0}
+.nav-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;background:none;border:none;color:#5a5a78;cursor:pointer;font-size:11px;gap:3px}
+.nav-item.active{color:var(--accent)}
+.nav-icon{font-size:20px}.nav-label{font-size:10px}
+/* 全屏表单面板 */
+.form-panel{position:fixed;inset:0;z-index:999;background:var(--bg-card);overflow-y:auto;padding:20px 16px;padding-bottom:40px}
+.form-panel.hidden{display:none}
+.form-panel h2{font-size:18px;margin-bottom:16px}
+.form-panel .form-group{margin-bottom:14px}
+.form-panel label{display:block;font-size:12px;color:var(--text-secondary);margin-bottom:4px;font-weight:600}
+.form-panel input,.form-panel select,.form-panel textarea{width:100%;padding:10px 12px;background:var(--bg-surface);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;outline:none;font-family:inherit}
+.form-panel textarea{resize:vertical;min-height:120px}
+.form-panel input:focus,.form-panel select:focus,.form-panel textarea:focus{border-color:var(--accent)}
+.form-panel .form-row{display:flex;gap:8px}
+.form-panel .form-row>*{flex:1}
+.form-panel .btn-row{display:flex;gap:8px;margin-top:16px}
+.form-panel .btn-row button{flex:1;padding:12px;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;border:none}
+.form-panel .btn-save{background:var(--accent);color:#fff}
+.form-panel .btn-cancel{background:var(--bg-surface);color:var(--text);border:1px solid var(--border)}
+.img-upload-area{display:flex;gap:8px;flex-wrap:wrap}
+.img-upload-box{width:64px;height:64px;border:2px dashed var(--border);border-radius:var(--radius-sm);display:flex;align-items:center;justify-content:center;cursor:pointer;color:#5a5a78;font-size:24px}
+.img-preview{width:64px;height:64px;border-radius:var(--radius-sm);object-fit:cover}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:var(--bg-surface);color:var(--text);padding:10px 20px;border-radius:20px;font-size:13px;z-index:9999;opacity:0;transition:opacity .3s;pointer-events:none}
+.toast.show{opacity:1}
+.list-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;cursor:pointer;display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.list-item-thumb{width:44px;height:44px;border-radius:var(--radius-sm);background:var(--bg-surface);display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px}
+.list-item-body{flex:1;min-width:0}
+.list-item-title{font-size:14px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.list-item-meta{font-size:11px;color:var(--text-secondary);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap}
+.list-item-right{text-align:right;flex-shrink:0}
+.list-item-price{font-size:14px;font-weight:700;color:#f0b848}
+.list-item-date{font-size:11px;color:#5a5a78}
+.toolbar{margin-bottom:14px}
+.input-search{width:100%;padding:10px 14px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-size:14px;outline:none;margin-bottom:8px}
+.input-search:focus{border-color:var(--accent)}
+.filter-row{display:flex;gap:8px}
+.select-filter{flex:1;padding:8px 10px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:13px;outline:none}
+.fab{position:fixed;bottom:calc(var(--nav-height)+var(--safe-bottom)+20px);right:20px;width:52px;height:52px;border-radius:50%;background:var(--accent);color:#fff;border:none;font-size:26px;cursor:pointer;box-shadow:0 4px 16px rgba(124,92,252,.25);z-index:10}
+</style>
+</head>
+<body>
+<div id="app">
+<header class="app-header"><h1 class="app-title" id="pageTitle">藏宝阁</h1></header>
+<main class="page-container">
+<section class="page" id="page-home">
+<div class="stats-grid">
+<div class="stat-card" data-nav="collections"><div class="stat-icon">📦</div><div class="stat-value" id="statCollections">0</div><div class="stat-label">藏品</div></div>
+<div class="stat-card" data-nav="docs"><div class="stat-icon">📝</div><div class="stat-value" id="statDocs">0</div><div class="stat-label">文档</div></div>
+<div class="stat-card"><div class="stat-icon">🏷️</div><div class="stat-value" id="statCategories">0</div><div class="stat-label">分类</div></div>
+<div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value" id="statWords">0</div><div class="stat-label">总字数</div></div>
+</div>
+<div class="section"><h3 class="section-title">最近添加</h3><div class="recent-list" id="recentList"><div class="empty-hint">还没有任何记录</div></div></div>
+<div class="quick-actions">
+<button class="btn-primary full" id="btnQuickCollect">+ 快速添加藏品</button>
+<button class="btn-secondary full" id="btnQuickDoc">+ 新建文档</button>
+</div>
+</section>
+</main>
+<nav class="bottom-nav">
+<button class="nav-item active" data-page="home"><span class="nav-icon">🏠</span><span class="nav-label">首页</span></button>
+</nav>
+</div>
+<div class="form-panel hidden" id="formPanel"></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ===== 最简数据库 =====
+const DB_NAME='tn',DB_VERSION=1;let db=null;
+function openDB(){return new Promise((r,j)=>{const q=indexedDB.open(DB_NAME,DB_VERSION);q.onupgradeneeded=e=>{const d=e.target.result;if(!d.objectStoreNames.contains('c')){const s=d.createObjectStore('c',{keyPath:'id',autoIncrement:true});s.createIndex('ca','category');s.createIndex('cr','created_at')}if(!d.objectStoreNames.contains('d')){const s=d.createObjectStore('d',{keyPath:'id',autoIncrement:true});s.createIndex('dc','category');s.createIndex('du','updated_at');s.createIndex('dw','word_count')}};q.onsuccess=e=>{db=e.target.result;r(db)};q.onerror=e=>j(e.target.error)})}
+function dp(store,item){return new Promise((r,j)=>{const t=db.transaction(store,'readwrite');const s=t.objectStore(store);const q=item.id?s.put(item):s.add(item);q.onsuccess=()=>r(q.result);q.onerror=e=>j(e.target.error)})}
+function dga(store){return new Promise((r,j)=>{const t=db.transaction(store,'readonly');const q=t.objectStore(store).getAll();q.onsuccess=()=>r(q.result);q.onerror=e=>j(e.target.error)})}
+function dc(store){return new Promise((r,j)=>{const t=db.transaction(store,'readonly');const q=t.objectStore(store).count();q.onsuccess=()=>r(q.result);q.onerror=e=>j(e.target.error)})}
+const CATS=['手办','积木','模型','书','二次元周边','旅游纪念品','玩具','其他'];
+function esc(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
+function ts(msg){const t=document.getElementById('toast');t.textContent=msg;t.classList.add('show');clearTimeout(t._tid);t._tid=setTimeout(()=>t.classList.remove('show'),2000)}
+
+// ===== 添加藏品表单（全屏面板，不用模态） =====
+let cimgs=[];
+function showForm(){
+  cimgs=[];
+  var h='<div class="img-upload-area" id="ua">';
+  h+='<div class="img-upload-box" id="ub">📷</div>';
+  h+='<input type="file" id="uf" accept="image/*" capture="environment" style="display:none">';
+  h+='</div>';
+  var html='<h2>添加藏品</h2>'
+    +'<div class="form-group"><label>名称 *</label><input type="text" id="fn" placeholder="藏品名称"></div>'
+    +'<div class="form-row"><div class="form-group"><label>分类</label><select id="fc">'
+    +'<option value="">选择分类</option>'+CATS.map(c=>'<option value="'+c+'">'+c+'</option>').join('')+'</select></div>'
+    +'<div class="form-group"><label>状态</label><select id="fs"><option value="已收藏">已收藏</option><option value="想入手">想入手</option><option value="已出掉">已出掉</option></select></div></div>'
+    +'<div class="form-group"><label>照片</label>'+h+'</div>'
+    +'<div class="form-row"><div class="form-group"><label>入手日期</label><input type="date" id="fd"></div>'
+    +'<div class="form-group"><label>价格 ¥</label><input type="number" id="fp" placeholder="0.00" step="0.01"></div></div>'
+    +'<div class="form-group"><label>来源</label><input type="text" id="fr" placeholder="淘宝/实体店/礼物..."></div>'
+    +'<div class="form-group"><label>展示位置</label><input type="text" id="fl" placeholder="书柜第二层..."></div>'
+    +'<div class="form-group"><label>标签</label><input type="text" id="ft" placeholder="限定,绝版..."></div>'
+    +'<div class="form-group"><label>备注</label><textarea id="fno" placeholder="这件藏品的故事..."></textarea></div>'
+    +'<div class="btn-row"><button class="btn-cancel" id="btnCancel">取消</button><button class="btn-save" id="btnSave">保存</button></div>';
+  var panel=document.getElementById('formPanel');
+  panel.innerHTML=html;
+  panel.classList.remove('hidden');
+  document.getElementById('btnCancel').onclick=function(){panel.classList.add('hidden')};
+  document.getElementById('btnSave').onclick=async function(){
+    var name=document.getElementById('fn').value.trim();
+    if(!name){ts('请输入名称');return}
+    await dp('c',{name:name,category:document.getElementById('fc').value,status:document.getElementById('fs').value,images:cimgs,purchase_date:document.getElementById('fd').value,price:document.getElementById('fp').value||null,source:document.getElementById('fr').value.trim(),location:document.getElementById('fl').value.trim(),tags:document.getElementById('ft').value.trim(),notes:document.getElementById('fno').value.trim(),created_at:new Date().toISOString(),updated_at:new Date().toISOString()});
+    panel.classList.add('hidden');ts('藏品已添加 ✅');refreshHome();
+  };
+  // 图片上传
+  document.getElementById('ub').onclick=function(){document.getElementById('uf').click()};
+  document.getElementById('uf').onchange=function(e){
+    Array.from(e.target.files).forEach(f=>{
+      var r=new FileReader();
+      r.onload=function(ev){
+        var img=new Image();
+        img.onload=function(){
+          var c=document.createElement('canvas');var w=img.width,h=img.height;
+          if(w>600){h=h*600/w;w=600}c.width=w;c.height=h;
+          c.getContext('2d').drawImage(img,0,0,w,h);
+          cimgs.push(c.toDataURL('image/jpeg',0.6));refreshImgs();
+        };img.src=ev.target.result;
+      };r.readAsDataURL(f);
+    });
+  };
+}
+function refreshImgs(){
+  var ua=document.getElementById('ua');if(!ua)return;
+  var h='';cimgs.forEach((img,i)=>{h+='<img class="img-preview" src="'+img+'" data-idx="'+i+'">'});
+  h+='<div class="img-upload-box" id="ub">📷</div><input type="file" id="uf" accept="image/*" capture="environment" style="display:none">';
+  ua.innerHTML=h;
+  document.getElementById('ub').onclick=function(){document.getElementById('uf').click()};
+  document.getElementById('uf').onchange=function(e){
+    Array.from(e.target.files).forEach(f=>{
+      var r=new FileReader();r.onload=function(ev){
+        var img=new Image();img.onload=function(){
+          var c=document.createElement('canvas');var w=img.width,h=img.height;
+          if(w>600){h=h*600/w;w=600}c.width=w;c.height=h;
+          c.getContext('2d').drawImage(img,0,0,w,h);
+          cimgs.push(c.toDataURL('image/jpeg',0.6));refreshImgs();
+        };img.src=ev.target.result;
+      };r.readAsDataURL(f);
+    });
+  };
+}
+
+// ===== 首页 =====
+async function refreshHome(){
+  var cc=await dc('c'),dc2=await dc('d');
+  document.getElementById('statCollections').textContent=cc;
+  document.getElementById('statDocs').textContent=dc2;
+  var all=await dga('c'),cats=new Set();all.forEach(c=>{if(c.category)cats.add(c.category)});
+  document.getElementById('statCategories').textContent=cats.size;
+  var ds=await dga('d'),tw=0;ds.forEach(d=>{tw+=d.content?d.content.replace(/\s/g,'').length:0});
+  document.getElementById('statWords').textContent=tw>999?Math.round(tw/1000)+'k':tw;
+}
+
+// ===== 初始化 =====
+async function init(){
+  await openDB();
+  document.getElementById('btnQuickCollect').onclick=function(){showForm()};
+  refreshHome();
+}
+document.addEventListener('DOMContentLoaded',init);
+</script>
+</body>
+</html>
+
