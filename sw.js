@@ -1,15 +1,15 @@
 /* === 藏宝阁 - Service Worker === */
 const CACHE_NAME = 'treasure-nest-v1';
 const ASSETS = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/db.js',
-  '/js/app.js',
-  '/js/collections.js',
-  '/js/docs.js',
-  '/js/search.js',
-  '/manifest.json'
+  './',
+  './index.html',
+  './css/style.css',
+  './js/db.js',
+  './js/app.js',
+  './js/collections.js',
+  './js/docs.js',
+  './js/search.js',
+  './manifest.json'
 ];
 
 self.addEventListener('install', (e) => {
