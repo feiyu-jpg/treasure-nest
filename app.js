@@ -48,6 +48,9 @@ async function init() {
     setTimeout(() => showDocForm(), 200);
   });
 
+  // 检查按钮是否绑定成功
+  console.log('App 初始化完成，按钮已绑定');
+
   // 导出按钮
   document.getElementById('btnExport').addEventListener('click', async () => {
     await exportAllData();
