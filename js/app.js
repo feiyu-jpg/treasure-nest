@@ -40,12 +40,14 @@ async function init() {
 
   // 快速操作
   document.getElementById('btnQuickCollect').addEventListener('click', () => {
+    showToast('正在打开添加藏品...');
     navigate('collections');
-    setTimeout(() => showCollectForm(), 200);
+    setTimeout(() => showCollectForm(), 300);
   });
   document.getElementById('btnQuickDoc').addEventListener('click', () => {
+    showToast('正在打开新建文档...');
     navigate('docs');
-    setTimeout(() => showDocForm(), 200);
+    setTimeout(() => showDocForm(), 300);
   });
 
   // 检查按钮是否绑定成功
