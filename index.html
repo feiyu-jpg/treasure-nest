@@ -161,5 +161,14 @@
   <script src="js/collections.js?v=4"></script>
   <script src="js/docs.js?v=4"></script>
   <script src="js/search.js?v=4"></script>
+  <script>
+    // 诊断：直接绑定 click 测试
+    setTimeout(function() {
+      var btn = document.getElementById('btnQuickCollect');
+      if (!btn) { document.body.innerHTML = '错误：找不到 btnQuickCollect 元素'; return; }
+      btn.addEventListener('click', function() { alert('click 触发成功！'); });
+      document.body.insertAdjacentHTML('beforeend', '<div style="position:fixed;top:0;left:0;background:lime;color:#000;padding:4px 10px;z-index:9999;font-size:11px;">诊断脚本已加载</div>');
+    }, 2000);
+  </script>
 </body>
 </html>
