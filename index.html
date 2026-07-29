@@ -74,8 +74,8 @@ html,body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft 
 <main class="page-container">
 <section class="page" id="page-home">
 <div class="stats-grid">
-<div class="stat-card" data-nav="collections"><div class="stat-icon">📦</div><div class="stat-value" id="statCollections">0</div><div class="stat-label">藏品</div></div>
-<div class="stat-card" data-nav="docs"><div class="stat-icon">📝</div><div class="stat-value" id="statDocs">0</div><div class="stat-label">文档</div></div>
+<div class="stat-card"><div class="stat-icon">📦</div><div class="stat-value" id="statCollections">0</div><div class="stat-label">藏品</div></div>
+<div class="stat-card"><div class="stat-icon">📝</div><div class="stat-value" id="statDocs">0</div><div class="stat-label">文档</div></div>
 <div class="stat-card"><div class="stat-icon">🏷️</div><div class="stat-value" id="statCategories">0</div><div class="stat-label">分类</div></div>
 <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-value" id="statWords">0</div><div class="stat-label">总字数</div></div>
 </div>
@@ -85,9 +85,20 @@ html,body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft 
 <button class="btn-secondary full" id="btnQuickDoc">+ 新建文档</button>
 </div>
 </section>
+<section class="page hidden" id="page-collect">
+<div class="toolbar">
+<input type="text" id="cSearch" class="input-search" placeholder="搜索藏品名称、标签、备注...">
+<div class="filter-row">
+<select id="cCat" class="select-filter"><option value="">全部分类</option></select>
+<select id="cStatus" class="select-filter"><option value="">全部状态</option><option value="已收藏">已收藏</option><option value="想入手">想入手</option><option value="已出掉">已出掉</option></select>
+</div>
+</div>
+<div class="list" id="collectFullList"><div class="empty-hint">还没有藏品</div></div>
+</section>
 </main>
 <nav class="bottom-nav">
 <button class="nav-item active" data-page="home"><span class="nav-icon">🏠</span><span class="nav-label">首页</span></button>
+<button class="nav-item" data-page="collect"><span class="nav-icon">📦</span><span class="nav-label">藏品</span></button>
 </nav>
 </div>
 <div class="form-panel hidden" id="formPanel"></div>
@@ -133,7 +144,7 @@ function showForm(){
     var name=document.getElementById('fn').value.trim();
     if(!name){ts('请输入名称');return}
     await dp('c',{name:name,category:document.getElementById('fc').value,status:document.getElementById('fs').value,images:cimgs,purchase_date:document.getElementById('fd').value,price:document.getElementById('fp').value||null,source:document.getElementById('fr').value.trim(),location:document.getElementById('fl').value.trim(),tags:document.getElementById('ft').value.trim(),notes:document.getElementById('fno').value.trim(),created_at:new Date().toISOString(),updated_at:new Date().toISOString()});
-    panel.classList.add('hidden');ts('藏品已添加 ✅');refreshHome();
+    panel.classList.add('hidden');ts('藏品已添加 ✅');refreshHome();refreshCollectPage();
   };
   // 图片上传
   document.getElementById('ub').onclick=function(){document.getElementById('uf').click()};
@@ -181,6 +192,36 @@ async function refreshHome(){
   document.getElementById('statCategories').textContent=cats.size;
   var ds=await dga('d'),tw=0;ds.forEach(d=>{tw+=d.content?d.content.replace(/\s/g,'').length:0});
   document.getElementById('statWords').textContent=tw>999?Math.round(tw/1000)+'k':tw;
+  // 显示最近藏品
+  var recent=all.sort((a,b)=>b.created_at.localeCompare(a.created_at)).slice(0,10);
+  var container=document.getElementById('recentList');
+  if(recent.length===0){container.innerHTML='<div class="empty-hint">还没有任何记录</div>';return}
+  var catsIcon={手办:'👤',积木:'🧱',模型:'🚀',书:'📖','二次元周边':'🎌','旅游纪念品':'🗺️',玩具:'🎮',其他:'📦'};
+  container.innerHTML=recent.map(function(c){
+    var icon=catsIcon[c.category]||'📦';
+    var price=c.price?'¥'+Number(c.price).toFixed(0):'';
+    return '<div class="list-item" onclick="showDetail('+c.id+')"><div class="list-item-thumb"><span>'+icon+'</span></div><div class="list-item-body"><div class="list-item-title">'+esc(c.name||'未命名')+'</div><div class="list-item-meta"><span>'+(c.category||'')+'</span><span>'+(c.status||'')+'</span></div></div><div class="list-item-right">'+(price?'<div class="list-item-price">'+price+'</div>':'')+'</div></div>';
+  }).join('');
+}
+
+// ===== 查看藏品详情 =====
+function showDetail(id){
+  dga('c').then(function(all){var c=all.find(function(x){return x.id===id});if(!c)return;
+    var imgs=c.images&&c.images.length?c.images.map(function(img){return '<img src="'+img+'" style="max-width:100%;border-radius:8px;margin-bottom:6px">'}).join(''):'';
+    var html='<h2>'+esc(c.name||'藏品')+'</h2>'+imgs
+      +'<div style="font-size:13px;color:var(--text-secondary);margin:8px 0">分类: '+(c.category||'无')+' | 状态: '+(c.status||'无')+'</div>'
+      +(c.price?'<div style="font-size:14px;color:#f0b848">价格: ¥'+Number(c.price).toFixed(2)+'</div>':'')
+      +(c.purchase_date?'<div style="font-size:13px;color:var(--text-secondary)">入手: '+c.purchase_date+'</div>':'')
+      +(c.source?'<div style="font-size:13px;color:var(--text-secondary)">来源: '+esc(c.source)+'</div>':'')
+      +(c.location?'<div style="font-size:13px;color:var(--text-secondary)">位置: '+esc(c.location)+'</div>':'')
+      +(c.tags?'<div style="font-size:13px;color:var(--text-secondary)">标签: '+esc(c.tags)+'</div>':'')
+      +(c.notes?'<div style="background:var(--bg-surface);padding:10px;border-radius:6px;margin-top:8px;font-size:13px;color:var(--text-secondary);white-space:pre-wrap">'+esc(c.notes)+'</div>':'')
+      +'<div class="btn-row"><button class="btn-cancel" id="btnDClose">关闭</button></div>';
+    var panel=document.getElementById('formPanel');
+    panel.innerHTML=html;
+    panel.classList.remove('hidden');
+    document.getElementById('btnDClose').onclick=function(){panel.classList.add('hidden')};
+  });
 }
 
 // ===== 文档表单 =====
@@ -208,9 +249,53 @@ function showDocForm(){
 // ===== 初始化 =====
 async function init(){
   await openDB();
+  // 底部导航
+  document.querySelectorAll('.nav-item').forEach(function(n){
+    n.onclick=function(){
+      document.querySelectorAll('.nav-item').forEach(function(x){x.classList.remove('active')});
+      n.classList.add('active');
+      document.querySelectorAll('.page').forEach(function(p){p.classList.add('hidden')});
+      var page=n.dataset.page;
+      document.getElementById('page-'+page).classList.remove('hidden');
+      document.getElementById('pageTitle').textContent=page==='home'?'藏宝阁':'藏品阁';
+      if(page==='home')refreshHome();
+      if(page==='collect')refreshCollectPage();
+    };
+  });
+  // 按钮
   document.getElementById('btnQuickCollect').onclick=function(){showForm()};
   document.getElementById('btnQuickDoc').onclick=function(){showDocForm()};
+  // 藏品页筛选
+  document.getElementById('cSearch').oninput=function(){refreshCollectPage()};
+  document.getElementById('cCat').onchange=function(){refreshCollectPage()};
+  document.getElementById('cStatus').onchange=function(){refreshCollectPage()};
+  // 分类下拉
+  var sel=document.getElementById('cCat');
+  sel.innerHTML='<option value="">全部分类</option>'+CATS.map(function(c){return '<option value="'+c+'">'+c+'</option>'}).join('');
   refreshHome();
+}
+
+// ===== 藏品列表页 =====
+async function refreshCollectPage(){
+  var search=document.getElementById('cSearch').value.toLowerCase();
+  var cat=document.getElementById('cCat').value;
+  var status=document.getElementById('cStatus').value;
+  var all=await dga('c');
+  all.sort(function(a,b){return b.created_at.localeCompare(a.created_at)});
+  if(cat)all=all.filter(function(c){return c.category===cat});
+  if(status)all=all.filter(function(c){return c.status===status});
+  if(search)all=all.filter(function(c){
+    return (c.name||'').toLowerCase().indexOf(search)>-1||(c.tags||'').toLowerCase().indexOf(search)>-1||(c.notes||'').toLowerCase().indexOf(search)>-1||(c.source||'').toLowerCase().indexOf(search)>-1;
+  });
+  var container=document.getElementById('collectFullList');
+  if(all.length===0){container.innerHTML='<div class="empty-hint">没有匹配的藏品</div>';return}
+  var catsIcon={手办:'👤',积木:'🧱',模型:'🚀',书:'📖','二次元周边':'🎌','旅游纪念品':'🗺️',玩具:'🎮',其他:'📦'};
+  container.innerHTML=all.map(function(c){
+    var icon=catsIcon[c.category]||'📦';
+    var price=c.price?'¥'+Number(c.price).toFixed(0):'';
+    var imgs=c.images&&c.images.length?' 📷'+c.images.length:'';
+    return '<div class="list-item" onclick="showDetail('+c.id+')"><div class="list-item-thumb"><span>'+icon+'</span></div><div class="list-item-body"><div class="list-item-title">'+esc(c.name||'未命名')+'</div><div class="list-item-meta"><span>'+(c.category||'')+'</span><span>'+(c.status||'')+'</span>'+imgs+'</div></div><div class="list-item-right">'+(price?'<div class="list-item-price">'+price+'</div>':'')+'</div></div>';
+  }).join('');
 }
 document.addEventListener('DOMContentLoaded',init);
 </script>
