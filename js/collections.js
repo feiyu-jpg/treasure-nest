@@ -1,65 +1,97 @@
 /* === 藏宝阁 - 藏品阁模块 === */
 
-let collectImages = []; // 当前编辑中的图片 base64 数组
+const COLLECT_PAGE_SIZE = 30;
+let collectImages = [];
+let collectPage = 0;
+let collectHasMore = true;
+let collectSearchMode = false;
 
 function initCollections() {
-  // 添加按钮
   document.getElementById('btnAddCollect').addEventListener('click', showCollectForm);
+  document.getElementById('collectSearch').addEventListener('input', () => refreshCollectList(true));
+  document.getElementById('collectFilterCategory').addEventListener('change', () => refreshCollectList(true));
+  document.getElementById('collectFilterStatus').addEventListener('change', () => refreshCollectList(true));
 
-  // 搜索
-  document.getElementById('collectSearch').addEventListener('input', refreshCollectList);
-
-  // 筛选
-  document.getElementById('collectFilterCategory').addEventListener('change', refreshCollectList);
-  document.getElementById('collectFilterStatus').addEventListener('change', refreshCollectList);
-
-  // 初始化分类下拉
   const sel = document.getElementById('collectFilterCategory');
   sel.innerHTML = '<option value="">全部分类</option>' +
     COLLECT_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
 }
 
-async function refreshCollectList() {
+async function refreshCollectList(reset = true) {
+  if (reset) { collectPage = 0; collectHasMore = true; }
+
   const search = document.getElementById('collectSearch').value.toLowerCase();
   const cat = document.getElementById('collectFilterCategory').value;
   const status = document.getElementById('collectFilterStatus').value;
+  const hasFilter = search || cat || status;
+  collectSearchMode = hasFilter;
 
-  let items = await getCollections();
-
-  if (cat) items = items.filter(i => i.category === cat);
-  if (status) items = items.filter(i => i.status === status);
-  if (search) {
-    items = items.filter(i =>
-      (i.name || '').toLowerCase().includes(search) ||
-      (i.tags || '').toLowerCase().includes(search) ||
-      (i.notes || '').toLowerCase().includes(search) ||
-      (i.source || '').toLowerCase().includes(search)
-    );
+  let items;
+  if (hasFilter) {
+    // 搜索/筛选：全量匹配（不需要图片，文本匹配很快）
+    const all = await dbGetAll('collections');
+    items = all.filter(i => {
+      if (cat && i.category !== cat) return false;
+      if (status && i.status !== status) return false;
+      if (search) {
+        const haystack = [i.name, i.tags, i.notes, i.source].filter(Boolean).join(' ').toLowerCase();
+        if (!haystack.includes(search)) return false;
+      }
+      return true;
+    });
+    collectHasMore = false; // 搜索结果不分页
+  } else {
+    // 浏览模式：分页加载
+    items = await dbGetPage('collections', 'created_at', collectPage * COLLECT_PAGE_SIZE, COLLECT_PAGE_SIZE);
+    collectHasMore = items.length === COLLECT_PAGE_SIZE;
   }
 
   const container = document.getElementById('collectList');
-  if (items.length === 0) {
-    container.innerHTML = '<div class="empty-hint">没有匹配的藏品</div>';
-    return;
+  if (reset) {
+    if (items.length === 0) {
+      container.innerHTML = '<div class="empty-hint">没有匹配的藏品</div>';
+      return;
+    }
+    container.innerHTML = items.map(renderCollectListItem).join('');
+  } else {
+    // 追加模式
+    container.innerHTML += items.map(renderCollectListItem).join('');
   }
-  container.innerHTML = items.map(renderCollectListItem).join('');
+
+  // 加载更多按钮
+  if (collectHasMore && !hasFilter) {
+    const existingBtn = document.getElementById('loadMoreCollect');
+    if (!existingBtn) {
+      container.insertAdjacentHTML('afterend',
+        '<button class="btn-secondary" id="loadMoreCollect" style="margin-top:10px;">加载更多...</button>');
+      document.getElementById('loadMoreCollect').addEventListener('click', async () => {
+        collectPage++;
+        await refreshCollectList(false);
+      });
+    }
+  } else {
+    const existingBtn = document.getElementById('loadMoreCollect');
+    if (existingBtn) existingBtn.remove();
+  }
+
   bindListItemClicks(container);
 }
 
 function renderCollectListItem(item) {
-  const thumb = item.images && item.images.length > 0
-    ? `<img src="${item.images[0]}" alt="">`
-    : '<span>' + getCategoryIcon(item.category) + '</span>';
+  // 列表不加载图片，用分类图标代替（点进详情才加载图片）
+  const icon = getCategoryIcon(item.category);
   const price = item.price ? `¥${Number(item.price).toFixed(0)}` : '';
+  const imgCount = item.images && item.images.length > 0 ? `📷${item.images.length}` : '';
   return `
     <div class="list-item" data-collect-id="${item.id}">
-      <div class="list-item-thumb">${thumb}</div>
+      <div class="list-item-thumb"><span>${icon}</span></div>
       <div class="list-item-body">
         <div class="list-item-title">${escapeHtml(item.name || '未命名藏品')}</div>
         <div class="list-item-meta">
           ${item.category ? `<span>${item.category}</span>` : ''}
           ${item.status ? `<span>${item.status}</span>` : ''}
           ${item.location ? `<span>📍${escapeHtml(item.location)}</span>` : ''}
+          ${imgCount ? `<span>${imgCount}</span>` : ''}
         </div>
       </div>
       <div class="list-item-right">
@@ -159,7 +191,7 @@ function showCollectForm(editId) {
       if (!data.name) { showToast('请输入藏品名称'); return; }
       await saveCollection(data);
       showToast(editId ? '藏品已更新 ✅' : '藏品已添加 ✅');
-      refreshCollectList();
+      refreshCollectList(true);
       refreshHome();
     });
 
@@ -181,8 +213,8 @@ function buildImageUploadHtml() {
       </div>`;
   });
   html += `
-    <div class="img-upload-box" id="imgUploadBox">+</div>
-    <input type="file" id="imgFileInput" accept="image/*" multiple style="display:none">
+    <div class="img-upload-box" id="imgUploadBox">📷</div>
+    <input type="file" id="imgFileInput" accept="image/*" capture="environment" multiple style="display:none">
   </div>`;
   return html;
 }
@@ -274,7 +306,7 @@ async function showCollectDetail(id) {
       if (confirm(`确定删除「${item.name}」？此操作不可撤销。`)) {
         await deleteCollection(id);
         closeModal();
-        refreshCollectList();
+        refreshCollectList(true);
         refreshHome();
         showToast('藏品已删除');
       }

@@ -16,8 +16,8 @@ function navigate(page) {
   document.getElementById('pageTitle').textContent = titles[page] || '藏宝阁';
 
   if (page === 'home') refreshHome();
-  if (page === 'collections') refreshCollectList();
-  if (page === 'docs') refreshDocList();
+  if (page === 'collections') refreshCollectList(true);
+  if (page === 'docs') refreshDocList(true);
   if (page === 'search') {
     document.getElementById('globalSearch').value = '';
     document.getElementById('searchResultList').innerHTML = '<div class="empty-hint">输入关键词开始搜索</div>';
@@ -65,27 +65,27 @@ async function init() {
 
 // ===== 首页 =====
 async function refreshHome() {
-  const collectStats = await getCollectionStats();
-  const docStats = await getDocStats();
   const collectCount = await dbCount('collections');
   const docCount = await dbCount('docs');
+  const docStats = await getDocStats();
 
   document.getElementById('statCollections').textContent = collectCount;
   document.getElementById('statDocs').textContent = docCount;
-  document.getElementById('statCategories').textContent = collectStats.categories;
+
+  // 统计分类数（轻量查询）
+  const catSet = new Set();
+  const allCollects = await dbGetAll('collections');
+  allCollects.forEach(c => { if (c.category) catSet.add(c.category); });
+  document.getElementById('statCategories').textContent = catSet.size;
   document.getElementById('statWords').textContent = formatNumber(docStats.totalWords);
 
-  // 最近添加
-  const collections = await getCollections();
-  const docs = await getDocs();
+  // 最近添加（只取最新 5 条，不分页）
+  const recentCollections = await dbGetPage('collections', 'created_at', 0, 3);
+  const recentDocs = await dbGetPage('docs', 'updated_at', 0, 3);
 
   let recent = [];
-  collections.slice(0, 3).forEach(c => {
-    recent.push({ type: 'collect', data: c, time: c.created_at });
-  });
-  docs.slice(0, 3).forEach(d => {
-    recent.push({ type: 'doc', data: d, time: d.created_at });
-  });
+  recentCollections.forEach(c => { recent.push({ type: 'collect', data: c, time: c.created_at }); });
+  recentDocs.forEach(d => { recent.push({ type: 'doc', data: d, time: d.created_at }); });
   recent.sort((a, b) => b.time.localeCompare(a.time));
   recent = recent.slice(0, 5);
 
@@ -95,11 +95,8 @@ async function refreshHome() {
     return;
   }
   container.innerHTML = recent.map(r => {
-    if (r.type === 'collect') {
-      return renderCollectListItem(r.data);
-    } else {
-      return renderDocListItem(r.data);
-    }
+    if (r.type === 'collect') return renderCollectListItem(r.data);
+    return renderDocListItem(r.data);
   }).join('');
   bindListItemClicks(container);
 }
@@ -183,8 +180,8 @@ function showFullscreen(src) {
   el.classList.remove('hidden');
 }
 
-// ===== 图片压缩（限制大小） =====
-function compressImage(file, maxW = 800) {
+// ===== 图片压缩（手机优化） =====
+function compressImage(file, maxW = 600) {
   return new Promise((resolve) => {
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -196,7 +193,7 @@ function compressImage(file, maxW = 800) {
         canvas.width = w; canvas.height = h;
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, w, h);
-        resolve(canvas.toDataURL('image/jpeg', 0.75));
+        resolve(canvas.toDataURL('image/jpeg', 0.6));
       };
       img.src = e.target.result;
     };

@@ -1,45 +1,77 @@
 /* === 藏宝阁 - 文渊阁模块 === */
 
+const DOC_PAGE_SIZE = 30;
+let docPage = 0;
+let docHasMore = true;
+
 function initDocs() {
   document.getElementById('btnAddDoc').addEventListener('click', showDocForm);
-  document.getElementById('docSearch').addEventListener('input', refreshDocList);
-  document.getElementById('docFilterCategory').addEventListener('change', refreshDocList);
-  document.getElementById('docSortBy').addEventListener('change', refreshDocList);
+  document.getElementById('docSearch').addEventListener('input', () => refreshDocList(true));
+  document.getElementById('docFilterCategory').addEventListener('change', () => refreshDocList(true));
+  document.getElementById('docSortBy').addEventListener('change', () => refreshDocList(true));
 
-  // 初始化分类下拉
   const sel = document.getElementById('docFilterCategory');
   sel.innerHTML = '<option value="">全部分类</option>' +
     DOC_CATEGORIES.map(c => `<option value="${c}">${c}</option>`).join('');
 }
 
-async function refreshDocList() {
+async function refreshDocList(reset = true) {
+  if (reset) { docPage = 0; docHasMore = true; }
+
   const search = document.getElementById('docSearch').value.toLowerCase();
   const cat = document.getElementById('docFilterCategory').value;
   const sortBy = document.getElementById('docSortBy').value;
+  const hasFilter = search || cat;
+  const hasCustomSort = sortBy !== 'updated_at';
 
-  let items = await getDocs();
-
-  if (cat) items = items.filter(i => i.category === cat);
-  if (search) {
-    items = items.filter(i =>
-      (i.title || '').toLowerCase().includes(search) ||
-      (i.content || '').toLowerCase().includes(search) ||
-      (i.tags || '').toLowerCase().includes(search)
-    );
+  let items;
+  if (hasFilter || hasCustomSort) {
+    // 搜索/筛选/自定义排序：全量加载（纯文本，很快）
+    const all = await dbGetAll('docs');
+    items = all.filter(i => {
+      if (cat && i.category !== cat) return false;
+      if (search) {
+        const haystack = [i.title, i.content, i.tags].filter(Boolean).join(' ').toLowerCase();
+        if (!haystack.includes(search)) return false;
+      }
+      return true;
+    });
+    if (sortBy === 'created_at') items.sort((a, b) => b.created_at.localeCompare(a.created_at));
+    else if (sortBy === 'word_count') items.sort((a, b) => (b.word_count || 0) - (a.word_count || 0));
+    else if (sortBy === 'title') items.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
+    docHasMore = false;
+  } else {
+    // 浏览模式：分页
+    items = await dbGetPage('docs', 'updated_at', docPage * DOC_PAGE_SIZE, DOC_PAGE_SIZE);
+    docHasMore = items.length === DOC_PAGE_SIZE;
   }
-
-  // 排序
-  if (sortBy === 'created_at') items.sort((a, b) => b.created_at.localeCompare(a.created_at));
-  else if (sortBy === 'word_count') items.sort((a, b) => (b.word_count || 0) - (a.word_count || 0));
-  else if (sortBy === 'title') items.sort((a, b) => (a.title || '').localeCompare(b.title || ''));
-  // 默认 updated_at
 
   const container = document.getElementById('docList');
-  if (items.length === 0) {
-    container.innerHTML = '<div class="empty-hint">没有匹配的文档</div>';
-    return;
+  if (reset) {
+    if (items.length === 0) {
+      container.innerHTML = '<div class="empty-hint">没有匹配的文档</div>';
+      return;
+    }
+    container.innerHTML = items.map(renderDocListItem).join('');
+  } else {
+    container.innerHTML += items.map(renderDocListItem).join('');
   }
-  container.innerHTML = items.map(renderDocListItem).join('');
+
+  if (docHasMore && !hasFilter && !hasCustomSort) {
+    const existingBtn = document.getElementById('loadMoreDocs');
+    if (!existingBtn) {
+      container.insertAdjacentHTML('afterend',
+        '<button class="btn-secondary" id="loadMoreDocs" style="margin-top:10px;">加载更多...</button>');
+      document.getElementById('loadMoreDocs').addEventListener('click', async () => {
+        docPage++;
+        await refreshDocList(false);
+      });
+    }
+  } else {
+    const existingBtn = document.getElementById('loadMoreDocs');
+    if (existingBtn) existingBtn.remove();
+  }
+
   bindListItemClicks(container);
 }
 
@@ -114,7 +146,7 @@ function showDocForm(editId) {
       if (!data.title) { showToast('请输入文档标题'); return; }
       await saveDoc(data);
       showToast(editId ? '文档已更新 ✅' : '文档已保存 ✅');
-      refreshDocList();
+      refreshDocList(true);
       refreshHome();
     });
   };
@@ -161,7 +193,7 @@ async function showDocDetail(id) {
       if (confirm(`确定删除「${item.title}」？此操作不可撤销。`)) {
         await deleteDoc(id);
         closeModal();
-        refreshDocList();
+        refreshDocList(true);
         refreshHome();
         showToast('文档已删除');
       }

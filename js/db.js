@@ -53,6 +53,28 @@ function dbGetAll(storeName, indexName) {
   });
 }
 
+// 游标分页查询（按索引排序，跳过 offset 条，取 limit 条）
+function dbGetPage(storeName, indexName, offset, limit, direction = 'prev') {
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(storeName, 'readonly');
+    const store = tx.objectStore(storeName);
+    const index = indexName ? store.index(indexName) : null;
+    const source = index || store;
+    const results = [];
+    let skipped = 0;
+    const req = source.openCursor(null, direction);
+    req.onsuccess = (e) => {
+      const cursor = e.target.result;
+      if (!cursor) { resolve(results); return; }
+      if (skipped < offset) { skipped++; cursor.continue(); return; }
+      results.push(cursor.value);
+      if (results.length >= limit) { resolve(results); return; }
+      cursor.continue();
+    };
+    req.onerror = (e) => reject(e.target.error);
+  });
+}
+
 function dbGet(storeName, id) {
   return new Promise((resolve, reject) => {
     const tx = db.transaction(storeName, 'readonly');
