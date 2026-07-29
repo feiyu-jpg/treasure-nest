@@ -183,8 +183,6 @@ async function refreshHome(){
   document.getElementById('statWords').textContent=tw>999?Math.round(tw/1000)+'k':tw;
 }
 
-// ===== 初始化 =====
-```javascript
 // ===== 文档表单 =====
 function showDocForm(){
   var html='<h2>新建文档</h2>'
@@ -192,7 +190,7 @@ function showDocForm(){
     +'<div class="form-row"><div class="form-group"><label>分类</label><select id="dfc">'
     +'<option value="">选择分类</option><option value="复盘">复盘</option><option value="写作素材">写作素材</option><option value="随笔">随笔</option><option value="技术笔记">技术笔记</option><option value="情感记录">情感记录</option><option value="生活">生活</option><option value="工作">工作</option><option value="其他">其他</option></select></div>'
     +'<div class="form-group"><label>标签</label><input type="text" id="dftg" placeholder="自我探索,成长..."></div></div>'
-    +'<div class="form-group"><label>内容（支持 Markdown）</label><textarea id="dfct" placeholder="在这里写...&#10;&#10;# 标题&#10;**加粗**&#10;- 列表" style="min-height:200px"></textarea></div>'
+    +'<div class="form-group"><label>内容（支持 Markdown）</label><textarea id="dfct" placeholder="在这里写..." style="min-height:200px"></textarea></div>'
     +'<div class="btn-row"><button class="btn-cancel" id="btnDCancel">取消</button><button class="btn-save" id="btnDSave">保存</button></div>';
   var panel=document.getElementById('formPanel');
   panel.innerHTML=html;
@@ -218,4 +216,3 @@ document.addEventListener('DOMContentLoaded',init);
 </script>
 </body>
 </html>
-
